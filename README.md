@@ -1,6 +1,6 @@
 # Student Tracker
 
-Ứng dụng quản lý học sinh dành cho giáo viên: nhập tên, tuổi và điểm Toán, Văn, Anh; tính điểm trung bình, xếp loại học lực và tìm kiếm theo tên. Dự án được xây dựng theo [yêu cầu bài kiểm tra](yeucau.md), với cả giao diện dòng lệnh (CLI) và giao diện cửa sổ (Tkinter).
+Ứng dụng quản lý học sinh dành cho giáo viên: nhập tên, tuổi và điểm Toán, Văn, Anh; tính điểm trung bình, xếp loại học lực và tìm kiếm theo tên. Dự án được xây dựng theo yêu cầu bài kiểm tra, với cả giao diện dòng lệnh (CLI) và giao diện cửa sổ (Tkinter).
 
 ## Tính năng đã xây dựng
 
