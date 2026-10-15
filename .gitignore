@@ -1,7 +1,0 @@
-__pycache__/
-*.py[cod]
-build/
-build_win/
-dist/students.db
-dist/students.db-*
-dist/students.csv
