@@ -115,7 +115,7 @@ def action_delete(repo: Repository) -> None:
 
 
 def main() -> None:
-    repo = Repository(str(Path(__file__).resolve().parent / "dist" / "students.csv"))
+    repo = Repository(str(Path(__file__).resolve().parent / "dist" / "students.db"))
     try:
         while True:
             print(MENU)

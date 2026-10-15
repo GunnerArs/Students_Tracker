@@ -1,12 +1,9 @@
-"""Student Tracker: models, business logic and CSV persistence."""
+"""Student Tracker: models, business logic and SQLite persistence."""
 
 from __future__ import annotations
 
-import csv
-import os
-import tempfile
+import sqlite3
 from dataclasses import dataclass
-from pathlib import Path
 from typing import Optional
 
 
@@ -60,112 +57,102 @@ class StudentManager:
 
 
 class Repository:
-    FIELDS = ("id", "name", "age", "math", "literature", "english")
+    SCHEMA = """CREATE TABLE IF NOT EXISTS students (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        age INTEGER NOT NULL,
+        math REAL NOT NULL,
+        literature REAL NOT NULL,
+        english REAL NOT NULL
+    )"""
 
-    def __init__(self, csv_path: str = "students.csv") -> None:
-        self.path = Path(csv_path)
-        if not self.path.exists():
-            self._write([])
-        else:
-            students = self.list_all()
-            if any(student.student_id != index for index, student in enumerate(students, 1)):
-                self._renumber(students)
-                self._write(students)
+    def __init__(self, db_path: str = "students.db") -> None:
+        self.conn = sqlite3.connect(db_path)
+        self.conn.row_factory = sqlite3.Row
+        with self.conn:
+            self.conn.execute(self.SCHEMA)
+            self._renumber()
+
+    def _renumber(self) -> None:
+        """Fill ID gaps in ascending order, inside the caller's transaction."""
+        ids = [row[0] for row in self.conn.execute("SELECT id FROM students ORDER BY id")]
+        for new_id, old_id in enumerate(ids, 1):
+            if new_id != old_id:
+                self.conn.execute("UPDATE students SET id=? WHERE id=?", (new_id, old_id))
 
     @staticmethod
-    def _renumber(students: list[Student]) -> None:
-        for index, student in enumerate(students, 1):
-            student.student_id = index
-
-    def _read(self) -> list[Student]:
-        with self.path.open("r", encoding="utf-8-sig", newline="") as stream:
-            reader = csv.DictReader(stream)
-            if reader.fieldnames != list(self.FIELDS):
-                raise ValueError(f"CSV không đúng cột: {self.path}")
-            return [Student(
-                name=row["name"], age=int(row["age"]), math=float(row["math"]),
-                literature=float(row["literature"]), english=float(row["english"]),
-                student_id=int(row["id"]),
-            ) for row in reader]
-
-    def _write(self, students: list[Student]) -> None:
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        temp_path: str | None = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                mode="w", encoding="utf-8-sig", newline="", dir=self.path.parent,
-                prefix=".students-", suffix=".csv", delete=False,
-            ) as stream:
-                temp_path = stream.name
-                writer = csv.DictWriter(stream, fieldnames=self.FIELDS)
-                writer.writeheader()
-                for student in students:
-                    writer.writerow({
-                        "id": student.student_id, "name": student.name, "age": student.age,
-                        "math": student.math, "literature": student.literature, "english": student.english,
-                    })
-            os.replace(temp_path, self.path)
-        finally:
-            if temp_path and os.path.exists(temp_path):
-                os.unlink(temp_path)
+    def _row_to_student(row: sqlite3.Row) -> Student:
+        return Student(row["name"], row["age"], row["math"],
+                       row["literature"], row["english"], row["id"])
 
     def list_all(self) -> list[Student]:
-        return sorted(self._read(), key=lambda student: student.student_id or 0)
+        return [self._row_to_student(row) for row in
+                self.conn.execute("SELECT * FROM students ORDER BY id")]
 
     def load_manager(self) -> StudentManager:
         return StudentManager(self.list_all())
 
     def add(self, student: Student) -> int:
-        students = self._read()
-        student.student_id = len(students) + 1
-        students.append(student)
-        self._write(students)
+        with self.conn:
+            student.student_id = self.conn.execute(
+                "SELECT COALESCE(MAX(id), 0) + 1 FROM students"
+            ).fetchone()[0]
+            self.conn.execute(
+                "INSERT INTO students (id, name, age, math, literature, english) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                (student.student_id, student.name, student.age, student.math,
+                 student.literature, student.english),
+            )
         return student.student_id
 
     def add_missing(self, candidates: list[Student]) -> int:
-        """Import only records whose student details are not already in the CSV."""
-        students = self._read()
+        """Import only records whose student details are not already in SQLite."""
         def details(student: Student) -> tuple[str, int, float, float, float]:
             return (student.name, student.age, student.math,
                     student.literature, student.english)
 
-        known = {details(student) for student in students}
-        next_id = len(students)
+        known = {details(student) for student in self.list_all()}
         added = 0
-        for candidate in candidates:
-            key = details(candidate)
-            if key in known:
-                continue
-            next_id += 1
-            candidate.student_id = next_id
-            students.append(candidate)
-            known.add(key)
-            added += 1
-        if added:
-            self._write(students)
+        with self.conn:
+            next_id = self.conn.execute("SELECT COALESCE(MAX(id), 0) FROM students").fetchone()[0]
+            for candidate in candidates:
+                key = details(candidate)
+                if key in known:
+                    continue
+                next_id += 1
+                candidate.student_id = next_id
+                self.conn.execute(
+                    "INSERT INTO students (id, name, age, math, literature, english) "
+                    "VALUES (?, ?, ?, ?, ?, ?)",
+                    (next_id, candidate.name, candidate.age, candidate.math,
+                     candidate.literature, candidate.english),
+                )
+                known.add(key)
+                added += 1
         return added
 
     def update(self, student: Student) -> None:
         if student.student_id is None:
             raise ValueError("Cần có student_id để sửa.")
-        students = self._read()
-        for index, existing in enumerate(students):
-            if existing.student_id == student.student_id:
-                students[index] = student
-                self._write(students)
-                return
+        with self.conn:
+            self.conn.execute(
+                "UPDATE students SET name=?, age=?, math=?, literature=?, english=? WHERE id=?",
+                (student.name, student.age, student.math, student.literature,
+                 student.english, student.student_id),
+            )
 
     def delete(self, student_id: int) -> bool:
-        students = self._read()
-        remaining = [student for student in students if student.student_id != student_id]
-        if len(remaining) == len(students):
-            return False
-        self._renumber(remaining)
-        self._write(remaining)
-        return True
+        with self.conn:
+            deleted = self.conn.execute(
+                "DELETE FROM students WHERE id=?", (student_id,)
+            ).rowcount > 0
+            if deleted:
+                self._renumber()
+        return deleted
 
     def get(self, student_id: int) -> Optional[Student]:
-        return next((student for student in self._read() if student.student_id == student_id), None)
+        row = self.conn.execute("SELECT * FROM students WHERE id=?", (student_id,)).fetchone()
+        return self._row_to_student(row) if row else None
 
     def close(self) -> None:
-        pass
+        self.conn.close()

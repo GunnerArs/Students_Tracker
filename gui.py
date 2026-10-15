@@ -11,7 +11,7 @@ from tkinter import messagebox, ttk
 from core import Repository, Student
 
 APP_DIR = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent / "dist"
-CSV_FILE = str(APP_DIR / "students.csv")
+DB_FILE = str(APP_DIR / "students.db")
 
 BG = "#1e222a"
 BG_CARD = "#272c37"
@@ -57,7 +57,7 @@ class StudentApp(tk.Tk):
         self.minsize(720, 480)
         self.configure(bg=BG)
         _apply_style(self)
-        self.repo = Repository(CSV_FILE)
+        self.repo = Repository(DB_FILE)
         self.selected_id: int | None = None
         self._loading = False
         self._build_header()
