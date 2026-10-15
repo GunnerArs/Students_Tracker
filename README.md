@@ -62,7 +62,6 @@ Khi đưa mã nguồn lên GitHub, `dist/students.db` được bỏ qua để tr
 
 ```text
 student_tracker/
-    ├── yeucau.md             # Yêu cầu bài kiểm tra
     ├── README.md              # Hướng dẫn
     ├── cli.py                 # Giao diện dòng lệnh
     ├── gui.py                 # Giao diện Tkinter
