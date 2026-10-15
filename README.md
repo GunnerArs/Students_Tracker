@@ -26,7 +26,7 @@
 
 ### Bản Windows đã đóng gói
 
-Mở `dist/student_tracker.exe`. Máy đích cần Windows 64-bit, không cần cài Python. Đặt `students.db` cùng thư mục với `.exe` để mang theo dữ liệu hiện có. Nếu thiếu file cơ sở dữ liệu, ứng dụng sẽ tạo một file mới với danh sách trống. Thư mục chứa hai file cần cho phép ứng dụng ghi dữ liệu.
+Mở `dist/student_tracker.exe`. Đặt `students.db` cùng thư mục với `.exe` để mang theo dữ liệu hiện có. Nếu thiếu file cơ sở dữ liệu, ứng dụng sẽ tạo một file mới với danh sách trống. Thư mục chứa hai file cần cho phép ứng dụng ghi dữ liệu.
 
 ### Chạy từ mã nguồn
 
