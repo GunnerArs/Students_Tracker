@@ -21,7 +21,7 @@
 - Dữ liệu được lưu trong SQLite tại `dist/students.db` và vẫn còn khi mở lại ứng dụng. Mã nguồn tách thành các lớp `Student`, `StudentManager` và `Repository`.
 - Có bản chạy Windows 64-bit được đóng gói bằng PyInstaller.
 
-Ứng dụng hiện thêm từng học sinh qua form hoặc menu; chưa có bước nhập trước số lượng **N**.
+Ứng dụng hiện thêm từng học sinh qua form hoặc menu.
 
 ## Chạy ứng dụng
 
