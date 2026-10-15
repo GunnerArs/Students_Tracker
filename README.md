@@ -24,10 +24,6 @@
 
 ## Chạy ứng dụng
 
-### Bản Windows đã đóng gói
-
-Mở `dist/student_tracker.exe`. Đặt `students.db` cùng thư mục với `.exe` để mang theo dữ liệu hiện có. Nếu thiếu file cơ sở dữ liệu, ứng dụng sẽ tạo một file mới với danh sách trống. Thư mục chứa hai file cần cho phép ứng dụng ghi dữ liệu.
-
 ### Chạy từ mã nguồn
 
 Cần Python 3.10 trở lên với Tkinter để chạy GUI. Từ thư mục `student_tracker`:
@@ -43,19 +39,10 @@ python cli.py
 ```
 
 Cả hai bản dùng chung `dist/students.db`; dữ liệu nhập ở một bản sẽ xuất hiện khi mở bản kia. Các thư viện dùng khi chạy mã nguồn đều thuộc thư viện chuẩn Python.
+### Bản Windows đã đóng gói
 
-### Đóng gói lại trên Windows
+Mở `dist/student_tracker.exe`. Đặt `students.db` cùng thư mục với `.exe` để mang theo dữ liệu hiện có. Nếu thiếu file cơ sở dữ liệu, ứng dụng sẽ tạo một file mới với danh sách trống. Thư mục chứa hai file cần cho phép ứng dụng ghi dữ liệu.
 
-Cài PyInstaller rồi chạy từ thư mục `student_tracker`:
-
-```powershell
-python -m pip install pyinstaller
-python -m PyInstaller --clean --noconfirm --distpath dist student_tracker.spec
-```
-
-File mới nằm tại `dist/student_tracker.exe`. Cơ sở dữ liệu không được nhúng vào `.exe`; giữ `dist/students.db` riêng để bảo toàn dữ liệu khi đóng gói lại hoặc chia sẻ cho máy khác.
-
-Khi đưa mã nguồn lên GitHub, `dist/students.db` được bỏ qua để tránh công khai tên và điểm của học sinh. Người tải dự án có thể chạy ứng dụng để tạo cơ sở dữ liệu trống, hoặc tự đặt file SQLite của mình cạnh `.exe`.
 
 ## Cấu trúc dự án
 
